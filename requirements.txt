@@ -14,7 +14,7 @@ alembic==1.13.1
 prometheus-client==0.16.0
 
 # requirements.txt mein yeh add karo
-pandas==2.0.3
+pandas==2.3.2
 
 # PostgreSQL
 psycopg==3.1.16
