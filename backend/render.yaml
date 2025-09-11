@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: edumosaic-backend
+    env: python
+    runtime: python-3.11.6
+    buildCommand: |
+      PIP_NO_CACHE_DIR=off pip install --upgrade pip setuptools wheel
+      PIP_NO_CACHE_DIR=off pip install -r requirements.txt
+    startCommand: |
+      gunicorn -k uvicorn.workers.UvicornWorker main:app --bind=0.0.0.0:$PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: edumosaic-db
+          property: connectionString
+    systemPackages:
+      - libjpeg-dev
+      - zlib1g-dev
+      - libpng-dev
+      - libfreetype6-dev
+      - libtiff5-dev
+      - libwebp-dev
+      - libx11-dev
+      - libxext-dev
+      - libxrender-dev
+      - libxslt1-dev
+      - liblcms2-dev
+      - libharfbuzz-dev
+      - libfribidi-dev
+    buildFilter:
+      paths:
+        - requirements.txt
+        - runtime.txt
+        - render.yaml

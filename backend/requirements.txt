@@ -1,0 +1,29 @@
+fastapi==0.104.1
+uvicorn[standard]==0.23.2
+python-multipart==0.0.6
+python-dotenv==1.0.1
+cloudinary==1.44.1
+sqlalchemy==2.0.26
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.3
+PyJWT==2.8.0
+gunicorn==21.2.0
+Pillow>=10.3.0
+aiofiles==23.2.1
+alembic==1.13.1
+prometheus-client==0.16.0
+
+# PostgreSQL
+psycopg==3.1.16
+
+# FastAPI needs Pydantic v2 (use prebuilt wheels to avoid Rust compilation)
+pydantic==2.9.2
+pydantic-core==2.23.4
+
+# Build tools (pin to stable prebuilt versions)
+pip>=25.1.1
+setuptools>=70.0.0
+wheel>=0.43.0
+
+# Optional: maturin only if source build required (prevents "maturin failed" error)
+maturin>=1.4.0
