@@ -15,6 +15,7 @@ prometheus-client==0.16.0
 
 # requirements.txt mein yeh add karo
 pandas==2.3.2
+reportlab==4.2.0
 
 # PostgreSQL
 psycopg==3.1.16
