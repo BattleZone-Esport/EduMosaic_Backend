@@ -329,13 +329,13 @@ def update_user_activity_sync(user_id: int, db: Session):
     except Exception as e:
         logger.error(f"Error updating user activity: {e}")
 
-async def record_analytics_event(user_id: int, event_type: str, event_ Dict[str, Any], db: Session):
+async def record_analytics_event(user_id: int, event_type: str, event_data: Dict[str, Any], db: Session):
     """Background task wrapper for analytics event recording"""
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, record_analytics_event_sync, user_id, event_type, event_data, db)
 
 # Enhanced background task to record analytics event
-async def record_analytics_event_sync(user_id: int, event_type: str, event_ Dict[str, Any], db: Session):
+async def record_analytics_event_sync(user_id: int, event_type: str, event_data: Dict[str, Any], db: Session):
     """Synchronous function for background task to record analytics event"""
     try:
         # Store in database
@@ -358,7 +358,7 @@ async def record_analytics_event_sync(user_id: int, event_type: str, event_ Dict
     except Exception as e:
         logger.error(f"Error recording analytics event: {e}")
 
-async def record_analytics_event(user_id: int, event_type: str, event_ Dict[str, Any], db: Session):
+async def record_analytics_event(user_id: int, event_type: str, event_data: Dict[str, Any], db: Session):
     """Background task wrapper for analytics event recording"""
     await record_analytics_event_sync(user_id, event_type, event_data, db)
 
