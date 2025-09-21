@@ -2412,9 +2412,31 @@ async def get_ai_recommendations(
     summary="🩺 System Health Check",
     description="Comprehensive system health monitoring with detailed component status",
     responses={
-        200: {"description": "System health status", "content": {"application/json": {"examples": {"success": {"value": {"status": "healthy", "components": {"database": "ok"}}}}}},
-        503: {"description": "System unhealthy", "content": {"application/json": {"examples": {"error": {"value": {"status": "unhealthy", "components": {"database": "error"}}}}}}
-    }
+        200: {
+            "description": "System health status",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "success": {
+                            "value": {"status": "healthy", "components": {"database": "ok"}}
+                        }
+                    }
+                }
+            },
+        },
+        503: {
+            "description": "System unhealthy",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "error": {
+                            "value": {"status": "unhealthy", "components": {"database": "error"}}
+                        }
+                    }
+                }
+            },
+        },
+    },  # ✅ last comma lagana zaroori hai
 )
 @handle_errors
 @limiter.limit("10/minute")
