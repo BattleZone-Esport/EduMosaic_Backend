@@ -2418,7 +2418,7 @@ async def get_ai_recommendations(
 )
 @handle_errors
 @limiter.limit("10/minute")
-async def system_health(
+async def system_health(  # Added 'async' here
     request: Request,
     db: Session = Depends(get_db)
 ):
