@@ -5,7 +5,7 @@ gunicorn==22.0.0
 
 # ==================== Database & ORM ==================== #
 sqlalchemy==2.0.36
-psycopg[binary]==3.2.3  # Async PostgreSQL driver
+psycopg[binary]==3.2.3
 alembic==1.13.2
 
 # ==================== Authentication & Security ==================== #
@@ -17,13 +17,13 @@ google-recaptcha==1.1.5
 
 # ==================== File Handling & Media ==================== #
 python-multipart==0.0.9
-cloudinary==1.45.0
-Pillow==11.0.0  # Latest compatible with Python 3.13
+cloudinary==1.44.1
+Pillow==10.4.0
 aiofiles==24.1.0
 
 # ==================== Data Processing & Analytics ==================== #
-pandas==2.2.2  # Latest with Python 3.13 support
-numpy==2.0.1   # Latest with Python 3.13 support
+pandas==2.2.2
+numpy==2.0.1
 scikit-learn==1.5.0
 matplotlib==3.8.4
 seaborn==0.13.2
