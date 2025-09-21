@@ -1,51 +1,63 @@
-# Core FastAPI stack
+# ==================== Core FastAPI Stack ==================== #
 fastapi~=0.104.1
 uvicorn[standard]~=0.23.2
 gunicorn~=21.2.0
 
-# Database & ORM
+# ==================== Database & ORM ==================== #
 sqlalchemy~=2.0.25
-psycopg~=3.1.16
+psycopg[binary]~=3.1.16  # Recommended over psycopg2 for async support
 alembic~=1.13.1
 
-# Authentication & Security
+# ==================== Authentication & Security ==================== #
 passlib[bcrypt]~=1.7.4
 bcrypt~=4.1.3
 PyJWT~=2.8.0
+python-jose[cryptography]~=3.3.0  # JWT verification
 google-recaptcha~=1.1.5
 
-# File handling & Media
+# ==================== File Handling & Media ==================== #
 python-multipart~=0.0.6
 cloudinary~=1.44.1
 Pillow==11.1.0
 aiofiles~=23.2.1
 
-# Data processing & Reporting
+# ==================== Data Processing & Analytics ==================== #
 pandas~=2.3.2
+numpy~=1.26.4
+scikit-learn~=1.5.0
+matplotlib~=3.8.4
+seaborn~=0.13.2
+
+# ==================== Reporting & PDFs ==================== #
 reportlab~=4.2.0
+
+# ==================== Monitoring & Error Tracking ==================== #
 sentry-sdk~=2.38.0
+prometheus-client~=0.16.0
+psutil~=7.0.0
 
+# ==================== Web & API Requests ==================== #
+httpx~=0.27.0
+beautifulsoup4~=4.12.3
 
+# ==================== Extra Features ==================== #
+qrcode[pil]~=7.4.2          # QR Code generation
+slowapi~=0.1.9              # Rate limiting
+bleach~=5.0.0               # Input sanitization
+email-validator~=2.1.1      # Required for pydantic EmailStr
 
-# Pydantic (FastAPI v2 compatible)
+# ==================== Async & Background ==================== #
+asyncio-compat~=0.1.2
+
+# ==================== Pydantic (FastAPI v2) ==================== #
 pydantic~=2.9.2
 pydantic-core~=2.23.4
 
-# Environment & Configuration
-python-dotenv~=1.0.1
-psutil~=7.0.0
+# ==================== Dev & Testing ==================== #
+pytest~=8.0.0
+pytest-asyncio~=0.23.0
 
-
-# Caching & Performance
-redis~=4.5.0
-
-# Monitoring & Metrics
-prometheus-client~=0.16.0
-
-# Security & Sanitization
-bleach~=5.0.0
-
-# Build tools (pinned for stability)
+# ==================== Build Tools ==================== #
 pip>=25.1.1
 setuptools>=70.0.0
 wheel>=0.43.0
