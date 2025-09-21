@@ -23,6 +23,9 @@ aiofiles~=23.2.1
 # Data processing & Reporting
 pandas~=2.3.2
 reportlab~=4.2.0
+sentry-sdk~=2.38.0
+
+
 
 # Pydantic (FastAPI v2 compatible)
 pydantic~=2.9.2
