@@ -22,7 +22,7 @@ Pillow==10.4.0
 aiofiles==24.1.0
 
 # ==================== Data Processing & Analytics ==================== #
-pandas==2.2.2
+pandas==2.3.0
 numpy==2.0.1
 scikit-learn==1.5.0
 matplotlib==3.8.4
