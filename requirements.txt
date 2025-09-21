@@ -1,64 +1,64 @@
 # ==================== Core FastAPI Stack ==================== #
-fastapi~=0.104.1
-uvicorn[standard]~=0.23.2
-gunicorn~=21.2.0
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+gunicorn==22.0.0
 
 # ==================== Database & ORM ==================== #
-sqlalchemy~=2.0.25
-psycopg[binary]~=3.1.16  # Recommended over psycopg2 for async support
-alembic~=1.13.1
+sqlalchemy==2.0.36
+psycopg[binary]==3.2.3  # Async PostgreSQL driver
+alembic==1.13.2
 
 # ==================== Authentication & Security ==================== #
-passlib[bcrypt]~=1.7.4
-bcrypt~=4.1.3
-PyJWT~=2.8.0
-python-jose[cryptography]~=3.3.0  # JWT verification
-google-recaptcha~=1.1.5
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.3
+PyJWT==2.9.0
+python-jose[cryptography]==3.3.0
+google-recaptcha==1.1.5
 
 # ==================== File Handling & Media ==================== #
-python-multipart~=0.0.6
-cloudinary~=1.44.1
-Pillow==11.1.0
-aiofiles~=23.2.1
+python-multipart==0.0.9
+cloudinary==1.45.0
+Pillow==11.0.0  # Latest compatible with Python 3.13
+aiofiles==24.1.0
 
 # ==================== Data Processing & Analytics ==================== #
-pandas~=2.3.2
-numpy~=2.3.0
-scikit-learn~=1.5.0
-matplotlib~=3.8.4
-seaborn~=0.13.2
+pandas==2.2.2  # Latest with Python 3.13 support
+numpy==2.0.1   # Latest with Python 3.13 support
+scikit-learn==1.5.0
+matplotlib==3.8.4
+seaborn==0.13.2
 
 # ==================== Reporting & PDFs ==================== #
-reportlab~=4.2.0
+reportlab==4.1.0
 
 # ==================== Monitoring & Error Tracking ==================== #
-sentry-sdk~=2.38.0
-prometheus-client~=0.16.0
-psutil~=7.0.0
+sentry-sdk==1.45.0
+prometheus-client==0.20.0
+psutil==5.9.8
 
 # ==================== Web & API Requests ==================== #
-httpx~=0.27.0
-beautifulsoup4~=4.12.3
+httpx==0.27.0
+beautifulsoup4==4.12.3
 
 # ==================== Extra Features ==================== #
-qrcode[pil]~=7.4.2          # QR Code generation
-slowapi~=0.1.9              # Rate limiting
-bleach~=5.0.0               # Input sanitization
-email-validator~=2.1.1      # Required for pydantic EmailStr
+qrcode[pil]==7.4.2
+slowapi==0.1.9
+bleach==6.1.0
+email-validator==2.1.1
 
 # ==================== Async & Background ==================== #
-asyncio-compat~=0.1.2
+asyncio-compat==0.1.3
 
-# ==================== Pydantic (FastAPI v2) ==================== #
-pydantic~=2.9.2
-pydantic-core~=2.23.4
+# ==================== Pydantic ==================== #
+pydantic==2.8.2
+pydantic-core==2.20.1
 
 # ==================== Dev & Testing ==================== #
-pytest~=8.0.0
-pytest-asyncio~=0.23.0
+pytest==8.2.2
+pytest-asyncio==0.23.6
 
 # ==================== Build Tools ==================== #
-pip>=25.1.1
-setuptools>=70.0.0
-wheel>=0.43.0
-maturin>=1.4.0
+pip==24.2
+setuptools==70.0.0
+wheel==0.43.0
+maturin==1.6.0
