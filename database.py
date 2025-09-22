@@ -1,4 +1,5 @@
-# database.py — INDIA'S NO.1 EDITION (Final Production-Ready)
+# database.py — EDUMOSAIC: INDIA'S NO.1 QUIZ APP (PRODUCTION-READY)
+# Engineered for Students, Teachers, and Lifelong Learners
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -8,7 +9,8 @@ import time
 import sentry_sdk
 import psutil
 import asyncio
-import redis.asyncio as redis
+import redis  # Use synchronous redis for startup tasks
+import redis.asyncio as redis_async  # Use async redis for background tasks
 from contextlib import contextmanager
 from dotenv import load_dotenv
 from sqlalchemy.exc import SQLAlchemyError, OperationalError, DatabaseError, DisconnectionError
@@ -58,7 +60,7 @@ if not DATABASE_URL:
     logger.critical("❌ DATABASE_URL environment variable is NOT SET!")
     raise ValueError("DATABASE_URL environment variable is required")
 
-# Sanitize & validate connection string - CHANGED FROM psycopg2 to psycopg
+# Sanitize & validate connection string for psycopg3
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
 elif DATABASE_URL.startswith("postgresql://"):
@@ -69,12 +71,12 @@ safe_url = re.sub(r':[^@]+@', ':*****@', DATABASE_URL)
 logger.info(f"✅ Database URL configured: {safe_url}")
 
 # === PRODUCTION-TUNED ENGINE CONFIGURATION === #
-# UPDATED: Removed PostgreSQL-specific connection parameters for psycopg3 compatibility
+# Optimized for high-concurrency quiz applications
 engine = create_engine(
     DATABASE_URL,
-    pool_size=20,                    # Increased for high traffic
-    max_overflow=30,                 # Handle sudden spikes
-    pool_timeout=60,                 # Wait up to 60s before failing (was 30)
+    pool_size=20,                    # Handle peak traffic during exam seasons
+    max_overflow=30,                 # Absorb sudden spikes (e.g., new quiz launch)
+    pool_timeout=60,                 # Wait up to 60s before failing
     pool_recycle=1800,               # Recycle every 30 mins — prevents stale connections
     pool_pre_ping=True,              # CRITICAL: Check connection health before use
     echo=False,                      # NEVER True in production
@@ -94,19 +96,21 @@ SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine,
-    expire_on_commit=False  # Better performance
+    expire_on_commit=False  # Better performance for complex quiz operations
 )
 
 Base = declarative_base()
 
 # === REDIS CONNECTION FOR RATE LIMITING & SESSION TRACKING === #
-redis_pool = None
+# Async pool for background tasks and request-scoped operations
+redis_async_pool = None
 
 async def get_redis_pool():
-    global redis_pool
-    if redis_pool is None:
+    """Get async Redis connection pool for background tasks and request handlers."""
+    global redis_async_pool
+    if redis_async_pool is None:
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-        redis_pool = redis.ConnectionPool.from_url(
+        redis_async_pool = redis_async.ConnectionPool.from_url(
             redis_url,
             max_connections=20,
             decode_responses=True,
@@ -115,31 +119,36 @@ async def get_redis_pool():
             socket_connect_timeout=5,
             socket_keepalive=True
         )
-    return redis.Redis(connection_pool=redis_pool)
+    return redis_async.Redis(connection_pool=redis_async_pool)
 
 # === DATABASE HEALTH CHECK WITH RETRY & SENTINEL === #
 def check_database_health(max_retries: int = 3) -> bool:
-    """Check DB health with exponential backoff + Sentry alerts + Redis heartbeat"""
+    """
+    Check DB health with exponential backoff + Sentry alerts + Redis heartbeat.
+    Uses SYNCHRONOUS Redis for startup compatibility.
+    """
     for attempt in range(1, max_retries + 1):
         try:
             with engine.connect() as conn:
                 result = conn.execute(text("SELECT 1"))
                 if result.scalar() == 1:
                     # ✅ Send heartbeat to Redis for monitoring dashboards
-                    async def send_heartbeat():
-                        try:
-                            r = await get_redis_pool()
-                            await r.setex("db_heartbeat", 60, "ok")  # Expires in 60s
-                            await r.hset("db_status", mapping={
-                                "last_checked": datetime.utcnow().isoformat(),
-                                "status": "healthy",
-                                "version": os.getenv("APP_VERSION", "unknown")
-                            })
-                        except Exception as e:
-                            logger.warning(f"⚠️ Could not update Redis heartbeat: {e}")
-                    
-                    asyncio.create_task(send_heartbeat())
-                    
+                    try:
+                        # Use SYNCHRONOUS Redis for startup health check
+                        r = redis.Redis.from_url(
+                            os.getenv("REDIS_URL", "redis://localhost:6379"),
+                            decode_responses=True,
+                            socket_connect_timeout=5,
+                            socket_keepalive=True
+                        )
+                        r.setex("db_heartbeat", 60, "ok")  # Expires in 60s
+                        r.hset("db_status", mapping={
+                            "last_checked": datetime.utcnow().isoformat(),
+                            "status": "healthy",
+                            "version": os.getenv("APP_VERSION", "unknown")
+                        })
+                    except Exception as e:
+                        logger.warning(f"⚠️ Could not update Redis heartbeat: {e}")
                     logger.info("✅ Database connection healthy")
                     return True
         except (OperationalError, DatabaseError, DisconnectionError, SQLAlchemyError) as e:
@@ -148,26 +157,27 @@ def check_database_health(max_retries: int = 3) -> bool:
             if attempt == max_retries:
                 sentry_sdk.capture_exception(e)
                 logger.critical("🚨 CRITICAL: Database unreachable after all retries!")
-                
                 # 💥 Critical Alert to Redis for DevOps Dashboard
-                async def send_critical_alert():
-                    try:
-                        r = await get_redis_pool()
-                        await r.hset("db_status", mapping={
-                            "last_checked": datetime.utcnow().isoformat(),
-                            "status": "critical",
-                            "error": str(e),
-                            "version": os.getenv("APP_VERSION", "unknown")
-                        })
-                        await r.publish("db_alerts", json.dumps({
-                            "level": "CRITICAL",
-                            "message": "Database connection failed after retries",
-                            "timestamp": datetime.utcnow().isoformat()
-                        }))
-                    except Exception as ex:
-                        logger.error(f"❌ Failed to publish DB alert: {ex}")
-                
-                asyncio.create_task(send_critical_alert())
+                try:
+                    r = redis.Redis.from_url(
+                        os.getenv("REDIS_URL", "redis://localhost:6379"),
+                        decode_responses=True,
+                        socket_connect_timeout=5,
+                        socket_keepalive=True
+                    )
+                    r.hset("db_status", mapping={
+                        "last_checked": datetime.utcnow().isoformat(),
+                        "status": "critical",
+                        "error": str(e),
+                        "version": os.getenv("APP_VERSION", "unknown")
+                    })
+                    r.publish("db_alerts", json.dumps({
+                        "level": "CRITICAL",
+                        "message": "Database connection failed after retries",
+                        "timestamp": datetime.utcnow().isoformat()
+                    }))
+                except Exception as ex:
+                    logger.error(f"❌ Failed to publish DB alert: {ex}")
                 return False
             time.sleep(wait_time)
         except Exception as e:
@@ -179,7 +189,10 @@ def check_database_health(max_retries: int = 3) -> bool:
 # === CONTEXT MANAGER FOR SESSIONS — WITH QUERY AUDITING === #
 @contextmanager
 def get_db():
-    """Get database session with automatic cleanup, slow query detection, audit logging & security checks"""
+    """
+    Get database session with automatic cleanup, slow query detection, audit logging & security checks.
+    Perfect for handling quiz submissions, user logins, and complex transactions.
+    """
     db = SessionLocal()
     start_time = time.time()
     request_id = getattr(getattr(db, 'request_context', None), 'request_id', 'UNKNOWN')
@@ -199,10 +212,9 @@ def get_db():
         logger.error(error_msg, exc_info=True)
         
         # 🔐 SECURITY: Never log raw SQL or user data
-        # But capture the exception type and context
         sentry_sdk.capture_exception(e)
         
-        # 🔔 Push to Redis pub/sub for real-time alerting
+        # 🔔 Push to Redis pub/sub for real-time alerting (async task)
         async def push_alert():
             try:
                 r = await get_redis_pool()
@@ -215,7 +227,13 @@ def get_db():
             except Exception as ex:
                 logger.error(f"Failed to push DB alert: {ex}")
         
-        asyncio.create_task(push_alert())
+        # Schedule the async task without blocking
+        try:
+            asyncio.create_task(push_alert())
+        except RuntimeError:
+            # If no event loop is running (e.g., in a sync test), log a warning
+            logger.warning("Could not schedule async alert task: No running event loop.")
+
         raise
         
     finally:
@@ -403,10 +421,6 @@ def init_db():
                 -- For JSONB indexing (if using JSON columns)
                 CREATE INDEX IF NOT EXISTS idx_users_premium_features_gin ON users USING GIN(premium_features);
             """))
-            
-            # 🔐 SECURITY: Restrict permissions (this should be done at DB level too!)
-            # But we can enforce via app logic — never allow raw SQL injection
-            # We're safe because we use ORM + parameterized queries
             
             conn.commit()
             logger.info("✅ Database indexes and extensions created/verified")
