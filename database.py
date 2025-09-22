@@ -446,8 +446,6 @@ except Exception as e:
     sentry_sdk.capture_exception(e)
     db_metrics.increment_failed_connections()
 
-# === RUN INITIALIZATION === #
-init_db()
 
 # === FINAL TOUCH: CUSTOM EXCEPTIONS FOR SECURITY === #
 class DatabaseSecurityException(Exception):
