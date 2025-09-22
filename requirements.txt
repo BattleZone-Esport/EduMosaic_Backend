@@ -55,7 +55,7 @@ pydantic-core==2.20.1
 # ==================== Redis Integration ==================== #
 redis==5.2.0  # Synchronous Redis client 
 aioredis==2.0.1  # Async Redis client 
-fastapi-redis-cache==0.3.0  # Redis caching for FastAPI 
+fastapi-redis-cache==0.2.5 # Redis caching for FastAPI 
 
 
 # ==================== Dev & Testing ==================== #
