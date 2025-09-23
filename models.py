@@ -11,7 +11,21 @@ import re
 from datetime import datetime, timedelta
 import uuid
 import secrets
-
+class Language(str, enum.Enum):
+    ENGLISH = "english"
+    HINDI = "hindi"
+    TAMIL = "tamil"
+    TELUGU = "telugu"
+    MARATHI = "marathi"
+    BENGALI = "bengali"
+    GUJARATI = "gujarati"
+    KANNADA = "kannada"
+    MALAYALAM = "malayalam"
+    PUNJABI = "punjabi"
+    ORIYA = "oriya"
+    ASSAMESE = "assamese"
+    URDU = "urdu"
+    OTHER = "other"
 # ==================== ENHANCED ENUMS ==================== #
 class ExamType(enum.Enum):
     UPSC = "upsc"
