@@ -2,6 +2,7 @@
 fastapi==0.111.0
 uvicorn[standard]==0.30.1
 gunicorn==22.0.0
+python-multipart==0.0.9
 
 # ==================== Database & ORM ==================== #
 sqlalchemy==2.0.36
@@ -15,11 +16,16 @@ PyJWT==2.9.0
 python-jose[cryptography]==3.3.0
 google-recaptcha==1.1.5
 
+# ==================== Redis & Caching ==================== #
+redis==5.2.0
+aioredis==2.0.1
+fastapi-redis-cache==0.2.5
+
 # ==================== File Handling & Media ==================== #
-python-multipart==0.0.9
 cloudinary==1.44.1
 Pillow==10.4.0
 aiofiles==24.1.0
+qrcode[pil]==7.4.2
 
 # ==================== Data Processing & Analytics ==================== #
 pandas==2.3.0
@@ -28,42 +34,43 @@ scikit-learn==1.7.0
 matplotlib==3.10.3
 seaborn==0.13.2
 
-# ==================== Reporting & PDFs ==================== #
-reportlab==4.1.0
+# ==================== API & Web Requests ==================== #
+httpx==0.27.0
+beautifulsoup4==4.12.3
+requests==2.32.3
 
 # ==================== Monitoring & Error Tracking ==================== #
 sentry-sdk==1.45.0
 prometheus-client==0.20.0
 psutil==5.9.8
 
-# ==================== Web & API Requests ==================== #
-httpx==0.27.0
-beautifulsoup4==4.12.3
-
-# ==================== Extra Features ==================== #
-qrcode[pil]==7.4.2
+# ==================== Rate Limiting ==================== #
 slowapi==0.1.9
-bleach==6.1.0
+
+# ==================== Data Validation ==================== #
+pydantic==2.8.2
+pydantic-settings==2.3.4
+pydantic-core==2.20.1
 email-validator==2.1.1
 
+# ==================== PDF Generation ==================== #
+reportlab==4.1.0
 
-# ==================== Pydantic ==================== #
-pydantic==2.8.2
-pydantic-core==2.20.1
+# ==================== Security & Validation ==================== #
+bleach==6.1.0
 
+# ==================== Environment Management ==================== #
+python-dotenv==1.0.1
 
-# ==================== Redis Integration ==================== #
-redis==5.2.0  # Synchronous Redis client 
-aioredis==2.0.1  # Async Redis client 
-fastapi-redis-cache==0.2.5 # Redis caching for FastAPI 
-
-
-# ==================== Dev & Testing ==================== #
-pytest==8.2.2
-pytest-asyncio==0.23.6
+# ==================== Dev Tools (Optional) ==================== #
+# black==25.9.0
+# ruff==0.13.1
+# isort==6.0.1
+# mypy==1.18.2
+# pytest==8.2.2
+# pytest-asyncio==0.23.6
 
 # ==================== Build Tools ==================== #
 pip==24.2
 setuptools==70.0.0
 wheel==0.43.0
-maturin==1.6.0

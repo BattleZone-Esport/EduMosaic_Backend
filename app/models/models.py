@@ -1,31 +1,36 @@
-from database import Base
+import enum
+import re
+import secrets
+import uuid
+from datetime import datetime, timedelta
+
 from sqlalchemy import (
-    Boolean, Index, Column, Integer, String, Text, JSON, DateTime,
-    ForeignKey, UniqueConstraint, Float, Table, Enum, ARRAY, CheckConstraint,
-    BigInteger, Numeric, Date, LargeBinary
+    ARRAY,
+    JSON,
+    BigInteger,
+    Boolean,
+    CheckConstraint,
+    Column,
+    Date,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    LargeBinary,
+    Numeric,
+    String,
+    Table,
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.sql import func
-import enum
-import re
-from datetime import datetime, timedelta
-import uuid
-import secrets
-class Language(str, enum.Enum):
-    ENGLISH = "english"
-    HINDI = "hindi"
-    TAMIL = "tamil"
-    TELUGU = "telugu"
-    MARATHI = "marathi"
-    BENGALI = "bengali"
-    GUJARATI = "gujarati"
-    KANNADA = "kannada"
-    MALAYALAM = "malayalam"
-    PUNJABI = "punjabi"
-    ORIYA = "oriya"
-    ASSAMESE = "assamese"
-    URDU = "urdu"
-    OTHER = "other"
+
+from app.core.database import Base
+
+
 # ==================== ENHANCED ENUMS ==================== #
 class ExamType(enum.Enum):
     UPSC = "upsc"
@@ -46,6 +51,7 @@ class ExamType(enum.Enum):
     GOVERNMENT_JOB = "government_job"
     COMPUTER = "computer"
 
+
 class QuestionType(enum.Enum):
     MULTIPLE_CHOICE = "multiple_choice"
     TRUE_FALSE = "true_false"
@@ -62,6 +68,7 @@ class QuestionType(enum.Enum):
     REASONING = "reasoning"
     APTITUDE = "aptitude"
 
+
 class DifficultyLevel(enum.Enum):
     BEGINNER = "beginner"
     EASY = "easy"
@@ -70,6 +77,7 @@ class DifficultyLevel(enum.Enum):
     EXPERT = "expert"
     MASTER = "master"
     EXAM_SPECIFIC = "exam_specific"  # For exam-specific difficulty
+
 
 class BadgeType(enum.Enum):
     GOLD = "gold"
@@ -80,6 +88,7 @@ class BadgeType(enum.Enum):
     SPECIAL = "special"
     LEGENDARY = "legendary"
     EXAM_SPECIALIST = "exam_specialist"  # For exam-specific achievements
+
 
 class UserRole(enum.Enum):
     SUPER_ADMIN = "super_admin"
@@ -103,6 +112,7 @@ class Language(enum.Enum):
     ARABIC = "arabic"
     RUSSIAN = "russian"
 
+
 class ExamCategory(Base):
     __tablename__ = "exam_categories"
     id = Column(Integer, primary_key=True, index=True)
@@ -113,14 +123,19 @@ class ExamCategory(Base):
     is_active = Column(Boolean, default=True, index=True)
     # Exam-specific details
     exam_type = Column(Enum(ExamType), nullable=False)
-    exam_pattern = Column(JSON)  # {"tier_1": {"time_limit": 60, "questions": 100}, "tier_2": {"time_limit": 120, "questions": 200}}
-    syllabus = Column(JSON)  # {"section_1": "General Awareness", "section_2": "Quantitative Aptitude"}
+    exam_pattern = Column(
+        JSON
+    )  # {"tier_1": {"time_limit": 60, "questions": 100}, "tier_2": {"time_limit": 120, "questions": 200}}
+    syllabus = Column(
+        JSON
+    )  # {"section_1": "General Awareness", "section_2": "Quantitative Aptitude"}
     previous_years = Column(ARRAY(Integer))  # Array of previous year exam IDs
     # Metadata
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     # Relationships
     quizzes = relationship("Quiz", back_populates="exam_category")
+
 
 # ==================== CORE MODELS ==================== #
 class User(Base):
@@ -153,18 +168,21 @@ class User(Base):
     is_premium = Column(Boolean, default=False, index=True)
     premium_plan = Column(String(20), nullable=True)
     premium_expiry = Column(DateTime, nullable=True)
-    premium_features = Column(JSON, default=lambda: {
-        "ad_free": False,
-        "unlimited_practice": False,
-        "detailed_analytics": False,
-        "priority_support": False,
-        "exclusive_content": False,
-        "offline_access": False,
-        "exam_simulator": False
-    })
+    premium_features = Column(
+        JSON,
+        default=lambda: {
+            "ad_free": False,
+            "unlimited_practice": False,
+            "detailed_analytics": False,
+            "priority_support": False,
+            "exclusive_content": False,
+            "offline_access": False,
+            "exam_simulator": False,
+        },
+    )
     # Referral System
     referral_code = Column(String(20), unique=True, nullable=True)
-    referred_by = Column(Integer, ForeignKey('users.id'), nullable=True)
+    referred_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     referral_count = Column(Integer, default=0)
     # Account Status
     role = Column(Enum(UserRole), default=UserRole.USER, index=True)
@@ -180,49 +198,67 @@ class User(Base):
     scores = relationship("UserScore", back_populates="user", cascade="all, delete-orphan")
     reattempts = relationship("QuizReattempt", back_populates="user", cascade="all, delete-orphan")
     badges = relationship("UserBadge", back_populates="user", cascade="all, delete-orphan")
-    achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
-    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+    achievements = relationship(
+        "UserAchievement", back_populates="user", cascade="all, delete-orphan"
+    )
+    refresh_tokens = relationship(
+        "RefreshToken", back_populates="user", cascade="all, delete-orphan"
+    )
     # Social Features
     followers = relationship("Follow", foreign_keys="Follow.followed_id", back_populates="followed")
     following = relationship("Follow", foreign_keys="Follow.follower_id", back_populates="follower")
-    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    notifications = relationship(
+        "Notification", back_populates="user", cascade="all, delete-orphan"
+    )
     # Content
     created_quizzes = relationship("Quiz", back_populates="creator")
     liked_quizzes = relationship("QuizLike", back_populates="user")
     reported_issues = relationship("ReportedIssue", back_populates="user")
-    category_preferences = relationship("Category", secondary="user_categories", back_populates="users")
+    category_preferences = relationship(
+        "Category", secondary="user_categories", back_populates="users"
+    )
     # Learning
-    learning_progress = relationship("UserLearningProgress", back_populates="user", cascade="all, delete-orphan")
+    learning_progress = relationship(
+        "UserLearningProgress", back_populates="user", cascade="all, delete-orphan"
+    )
     daily_challenges = relationship("UserDailyChallenge", back_populates="user")
     tournament_participations = relationship("TournamentParticipant", back_populates="user")
     # Referrals
-    referrals_sent = relationship("Referral", foreign_keys="Referral.referrer_id", back_populates="referrer")
-    referrals_received = relationship("Referral", foreign_keys="Referral.referred_id", back_populates="referred")
+    referrals_sent = relationship(
+        "Referral", foreign_keys="Referral.referrer_id", back_populates="referrer"
+    )
+    referrals_received = relationship(
+        "Referral", foreign_keys="Referral.referred_id", back_populates="referred"
+    )
     # Study Groups
     study_groups = relationship("StudyGroupMember", back_populates="user")
     created_study_groups = relationship("StudyGroup", back_populates="creator")
     # Exam-specific
     exam_preferences = relationship("ExamPreference", back_populates="user")
     __table_args__ = (
-        CheckConstraint('xp >= 0', name='check_xp_positive'),
-        CheckConstraint('coins >= 0', name='check_coins_positive'),
-        CheckConstraint('gems >= 0', name='check_gems_positive'),
-        CheckConstraint('streak >= 0', name='check_streak_positive'),
-        Index('ix_users_xp_level', 'xp', 'level'),
+        CheckConstraint("xp >= 0", name="check_xp_positive"),
+        CheckConstraint("coins >= 0", name="check_coins_positive"),
+        CheckConstraint("gems >= 0", name="check_gems_positive"),
+        CheckConstraint("streak >= 0", name="check_streak_positive"),
+        Index("ix_users_xp_level", "xp", "level"),
     )
-    @validates('email')
+
+    @validates("email")
     def validate_email(self, key, email):
-        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-            raise ValueError('Invalid email format')
+        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
+            raise ValueError("Invalid email format")
         return email
-    @validates('phone_number')
+
+    @validates("phone_number")
     def validate_phone(self, key, phone_number):
-        if phone_number and not re.match(r'^\+?[1-9]\d{1,14}$', phone_number):
-            raise ValueError('Invalid phone number format')
+        if phone_number and not re.match(r"^\+?[1-9]\d{1,14}$", phone_number):
+            raise ValueError("Invalid phone number format")
         return phone_number
+
     def generate_referral_code(self):
         if not self.referral_code:
             self.referral_code = secrets.token_urlsafe(8).upper()
+
 
 class ExamPreference(Base):
     __tablename__ = "exam_preferences"
@@ -234,6 +270,7 @@ class ExamPreference(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     user = relationship("User", back_populates="exam_preferences")
     exam_category = relationship("ExamCategory")
+
 
 class Category(Base):
     __tablename__ = "categories"
@@ -260,9 +297,8 @@ class Category(Base):
     users = relationship("User", secondary="user_categories", back_populates="category_preferences")
     children = relationship("Category", backref="parent")
     study_materials = relationship("StudyMaterial", back_populates="category")
-    __table_args__ = (
-        Index('ix_categories_exam_types', 'exam_types', postgresql_using='gin'),
-    )
+    __table_args__ = (Index("ix_categories_exam_types", "exam_types", postgresql_using="gin"),)
+
 
 class Tag(Base):
     __tablename__ = "tags"
@@ -280,9 +316,8 @@ class Tag(Base):
     # Relationships
     quizzes = relationship("Quiz", secondary="quiz_tags", back_populates="tags")
     questions = relationship("QuestionTag", back_populates="tag")
-    __table_args__ = (
-        Index('ix_tags_category', 'category_id'),
-    )
+    __table_args__ = (Index("ix_tags_category", "category_id"),)
+
 
 class Follow(Base):
     __tablename__ = "follows"
@@ -292,6 +327,7 @@ class Follow(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     follower = relationship("User", foreign_keys=[follower_id], back_populates="following")
     followed = relationship("User", foreign_keys=[followed_id], back_populates="followers")
+
 
 class Notification(Base):
     __tablename__ = "notifications"
@@ -304,6 +340,7 @@ class Notification(Base):
     data = Column(JSON)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user = relationship("User", back_populates="notifications")
+
 
 class ReportedIssue(Base):
     __tablename__ = "reported_issues"
@@ -318,6 +355,7 @@ class ReportedIssue(Base):
     quiz_id = Column(Integer, ForeignKey("quizzes.id"), nullable=True)
     quiz = relationship("Quiz", back_populates="reports")
 
+
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
     id = Column(Integer, primary_key=True, index=True)
@@ -328,6 +366,7 @@ class RefreshToken(Base):
     revoked_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user = relationship("User", back_populates="refresh_tokens")
+
 
 class Achievement(Base):
     __tablename__ = "achievements"
@@ -341,6 +380,7 @@ class Achievement(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
+
 class UserAchievement(Base):
     __tablename__ = "user_achievements"
     id = Column(Integer, primary_key=True, index=True)
@@ -350,6 +390,7 @@ class UserAchievement(Base):
     earned_at = Column(DateTime(timezone=True), server_default=func.now())
     user = relationship("User", back_populates="achievements")
     achievement = relationship("Achievement")
+
 
 class UserLearningProgress(Base):
     __tablename__ = "user_learning_progress"
@@ -362,6 +403,7 @@ class UserLearningProgress(Base):
     user = relationship("User", back_populates="learning_progress")
     category = relationship("Category")
 
+
 class UserDailyChallenge(Base):
     __tablename__ = "user_daily_challenges"
     id = Column(Integer, primary_key=True, index=True)
@@ -371,6 +413,7 @@ class UserDailyChallenge(Base):
     completed_at = Column(DateTime(timezone=True), nullable=True)
     user = relationship("User", back_populates="daily_challenges")
 
+
 class Referral(Base):
     __tablename__ = "referrals"
     id = Column(Integer, primary_key=True, index=True)
@@ -379,6 +422,7 @@ class Referral(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     referrer = relationship("User", foreign_keys=[referrer_id], back_populates="referrals_sent")
     referred = relationship("User", foreign_keys=[referred_id], back_populates="referrals_received")
+
 
 class StudyGroup(Base):
     __tablename__ = "study_groups"
@@ -396,6 +440,7 @@ class StudyGroup(Base):
     creator = relationship("User", back_populates="created_study_groups")
     members = relationship("StudyGroupMember", back_populates="group")
 
+
 class StudyGroupMember(Base):
     __tablename__ = "study_group_members"
     id = Column(Integer, primary_key=True, index=True)
@@ -406,6 +451,7 @@ class StudyGroupMember(Base):
     group = relationship("StudyGroup", back_populates="members")
     user = relationship("User", back_populates="study_groups")
 
+
 class LearningPathStep(Base):
     __tablename__ = "learning_path_steps"
     id = Column(Integer, primary_key=True, index=True)
@@ -414,6 +460,7 @@ class LearningPathStep(Base):
     order = Column(Integer, default=0)
     learning_path = relationship("LearningPath", back_populates="steps")
     quiz = relationship("Quiz")
+
 
 class LearningPath(Base):
     __tablename__ = "learning_paths"
@@ -427,6 +474,7 @@ class LearningPath(Base):
     category = relationship("Category")
     creator = relationship("User")
     steps = relationship("LearningPathStep", back_populates="learning_path")
+
 
 class Tournament(Base):
     __tablename__ = "tournaments"
@@ -444,6 +492,7 @@ class Tournament(Base):
     quiz = relationship("Quiz", back_populates="tournaments")
     participants = relationship("TournamentParticipant", back_populates="tournament")
 
+
 class TournamentParticipant(Base):
     __tablename__ = "tournament_participants"
     id = Column(Integer, primary_key=True, index=True)
@@ -455,30 +504,35 @@ class TournamentParticipant(Base):
     tournament = relationship("Tournament", back_populates="participants")
     user = relationship("User", back_populates="tournament_participations")
 
+
 # ==================== ASSOCIATION TABLES ==================== #
 quiz_tags = Table(
-    'quiz_tags', Base.metadata,
-    Column('quiz_id', Integer, ForeignKey('quizzes.id', ondelete='CASCADE')),
-    Column('tag_id', Integer, ForeignKey('tags.id', ondelete='CASCADE')),
-    Index('ix_quiz_tags_quiz_id', 'quiz_id'),
-    Index('ix_quiz_tags_tag_id', 'tag_id')
+    "quiz_tags",
+    Base.metadata,
+    Column("quiz_id", Integer, ForeignKey("quizzes.id", ondelete="CASCADE")),
+    Column("tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE")),
+    Index("ix_quiz_tags_quiz_id", "quiz_id"),
+    Index("ix_quiz_tags_tag_id", "tag_id"),
 )
 
 user_categories = Table(
-    'user_categories', Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.id', ondelete='CASCADE')),
-    Column('category_id', Integer, ForeignKey('categories.id', ondelete='CASCADE')),
-    UniqueConstraint('user_id', 'category_id', name='uq_user_category'),
-    Index('ix_user_categories_user_id', 'user_id'),
-    Index('ix_user_categories_category_id', 'category_id')
+    "user_categories",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE")),
+    Column("category_id", Integer, ForeignKey("categories.id", ondelete="CASCADE")),
+    UniqueConstraint("user_id", "category_id", name="uq_user_category"),
+    Index("ix_user_categories_user_id", "user_id"),
+    Index("ix_user_categories_category_id", "category_id"),
 )
 
 quiz_exam_types = Table(
-    'quiz_exam_types', Base.metadata,
-    Column('quiz_id', Integer, ForeignKey('quizzes.id', ondelete='CASCADE')),
-    Column('exam_type', Enum(ExamType)),
-    Index('ix_quiz_exam_types_quiz_id', 'quiz_id')
+    "quiz_exam_types",
+    Base.metadata,
+    Column("quiz_id", Integer, ForeignKey("quizzes.id", ondelete="CASCADE")),
+    Column("exam_type", Enum(ExamType)),
+    Index("ix_quiz_exam_types_quiz_id", "quiz_id"),
 )
+
 
 # ==================== QUIZ & QUESTION MODELS ==================== #
 class Quiz(Base):
@@ -499,7 +553,9 @@ class Quiz(Base):
     estimated_completion_time = Column(Integer)  # minutes
     # Exam-specific features
     is_exam_simulator = Column(Boolean, default=False)
-    exam_pattern = Column(JSON)  # {"tier_1": {"time_limit": 60, "questions": 100}, "tier_2": {"time_limit": 120, "questions": 200}}
+    exam_pattern = Column(
+        JSON
+    )  # {"tier_1": {"time_limit": 60, "questions": 100}, "tier_2": {"time_limit": 120, "questions": 200}}
     # Rewards
     xp_reward = Column(Integer, default=10)
     coin_reward = Column(Integer, default=5)
@@ -542,11 +598,12 @@ class Quiz(Base):
     # Tournament Integration
     tournaments = relationship("Tournament", back_populates="quiz")
     __table_args__ = (
-        CheckConstraint('question_count > 0', name='check_question_count_positive'),
-        CheckConstraint('time_limit > 0', name='check_time_limit_positive'),
-        Index('ix_quizzes_difficulty_category', 'difficulty', 'category_id'),
-        Index('ix_quizzes_exam_types', 'exam_types', postgresql_using='gin'),
+        CheckConstraint("question_count > 0", name="check_question_count_positive"),
+        CheckConstraint("time_limit > 0", name="check_time_limit_positive"),
+        Index("ix_quizzes_difficulty_category", "difficulty", "category_id"),
+        Index("ix_quizzes_exam_types", "exam_types", postgresql_using="gin"),
     )
+
 
 class Question(Base):
     __tablename__ = "questions"
@@ -568,7 +625,9 @@ class Question(Base):
     time_limit = Column(Integer, nullable=True)  # Individual question time limit
     sort_order = Column(Integer, default=0)
     # Exam-specific
-    exam_pattern = Column(JSON)  # {"tier_1": {"time_limit": 60, "questions": 100}, "tier_2": {"time_limit": 120, "questions": 200}}
+    exam_pattern = Column(
+        JSON
+    )  # {"tier_1": {"time_limit": 60, "questions": 100}, "tier_2": {"time_limit": 120, "questions": 200}}
     # Learning Aids
     hint = Column(Text)
     learning_tips = Column(Text)
@@ -594,10 +653,13 @@ class Question(Base):
     question_tags = relationship("QuestionTag", back_populates="question")
     difficulty_history = relationship("QuestionDifficultyHistory", back_populates="question")
     __table_args__ = (
-        CheckConstraint('points >= 0', name='check_points_positive'),
-        CheckConstraint('negative_mark_percentage >= 0 AND negative_mark_percentage <= 1', 
-                       name='check_negative_mark_range'),
+        CheckConstraint("points >= 0", name="check_points_positive"),
+        CheckConstraint(
+            "negative_mark_percentage >= 0 AND negative_mark_percentage <= 1",
+            name="check_negative_mark_range",
+        ),
     )
+
 
 class Option(Base):
     __tablename__ = "options"
@@ -613,8 +675,11 @@ class Option(Base):
     common_choice = Column(Boolean, default=False)  # Frequently chosen incorrect option
     question = relationship("Question", back_populates="options")
     __table_args__ = (
-        CheckConstraint('partial_score >= 0 AND partial_score <= 1', name='check_partial_score_range'),
+        CheckConstraint(
+            "partial_score >= 0 AND partial_score <= 1", name="check_partial_score_range"
+        ),
     )
+
 
 class QuestionTag(Base):
     __tablename__ = "question_tags"
@@ -627,10 +692,11 @@ class QuestionTag(Base):
     question = relationship("Question", back_populates="question_tags")
     tag = relationship("Tag", back_populates="questions")
     __table_args__ = (
-        UniqueConstraint('question_id', 'tag_id', name='uq_question_tag'),
-        Index('ix_question_tags_question_id', 'question_id'),
-        Index('ix_question_tags_tag_id', 'tag_id'),
+        UniqueConstraint("question_id", "tag_id", name="uq_question_tag"),
+        Index("ix_question_tags_question_id", "question_id"),
+        Index("ix_question_tags_tag_id", "tag_id"),
     )
+
 
 # ==================== ENHANCED FEATURES MODELS ==================== #
 class QuizReattempt(Base):
@@ -658,10 +724,11 @@ class QuizReattempt(Base):
     quiz = relationship("Quiz")
     __table_args__ = (
         UniqueConstraint("user_id", "quiz_id", "session_id", name="uq_user_quiz_session"),
-        CheckConstraint('score >= 0', name='check_score_positive'),
-        CheckConstraint('accuracy >= 0 AND accuracy <= 100', name='check_accuracy_range'),
-        Index('ix_reattempts_user_quiz', 'user_id', 'quiz_id'),
+        CheckConstraint("score >= 0", name="check_score_positive"),
+        CheckConstraint("accuracy >= 0 AND accuracy <= 100", name="check_accuracy_range"),
+        Index("ix_reattempts_user_quiz", "user_id", "quiz_id"),
     )
+
 
 class StudyMaterial(Base):
     __tablename__ = "study_materials"
@@ -686,6 +753,7 @@ class StudyMaterial(Base):
     category = relationship("Category", back_populates="study_materials")
     quiz = relationship("Quiz", back_populates="study_materials")
 
+
 # ==================== ADDITIONAL ENHANCED MODELS ==================== #
 class QuizSession(Base):
     __tablename__ = "quiz_sessions"
@@ -703,6 +771,7 @@ class QuizSession(Base):
     # Exam-specific
     exam_tier = Column(String(50), nullable=True)  # For multi-tier exams like UPSC
 
+
 class AnalyticsEvent(Base):
     __tablename__ = "analytics_events"
     id = Column(Integer, primary_key=True, index=True)
@@ -710,6 +779,7 @@ class AnalyticsEvent(Base):
     event_type = Column(String)
     event_data = Column(JSON)
     timestamp = Column(DateTime, default=datetime.utcnow)
+
 
 class UserScore(Base):
     __tablename__ = "user_scores"
@@ -727,9 +797,10 @@ class UserScore(Base):
     user = relationship("User", back_populates="scores")
     quiz = relationship("Quiz")
     __table_args__ = (
-        Index('ix_user_scores_user_quiz', 'user_id', 'quiz_id'),
-        Index('ix_user_scores_completed_at', 'completed_at'),
+        Index("ix_user_scores_user_quiz", "user_id", "quiz_id"),
+        Index("ix_user_scores_completed_at", "completed_at"),
     )
+
 
 class QuizLike(Base):
     __tablename__ = "quiz_likes"
@@ -739,9 +810,8 @@ class QuizLike(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user = relationship("User", back_populates="liked_quizzes")
     quiz = relationship("Quiz", back_populates="likes")
-    __table_args__ = (
-        UniqueConstraint('user_id', 'quiz_id', name='uq_user_quiz_like'),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "quiz_id", name="uq_user_quiz_like"),)
+
 
 class UserBadge(Base):
     __tablename__ = "user_badges"
@@ -753,9 +823,8 @@ class UserBadge(Base):
     icon_url = Column(String(500))
     earned_at = Column(DateTime(timezone=True), server_default=func.now())
     user = relationship("User", back_populates="badges")
-    __table_args__ = (
-        Index('ix_user_badges_user_id', 'user_id'),
-    )
+    __table_args__ = (Index("ix_user_badges_user_id", "user_id"),)
+
 
 class QuestionDifficultyHistory(Base):
     __tablename__ = "question_difficulty_history"
@@ -766,13 +835,14 @@ class QuestionDifficultyHistory(Base):
     changed_at = Column(DateTime(timezone=True), server_default=func.now())
     question = relationship("Question", back_populates="difficulty_history")
 
+
 # ==================== FINAL OPTIMIZATIONS ==================== #
 # Add indexes for better performance
-Index('ix_users_email', User.email)
-Index('ix_users_username', User.username)
-Index('ix_quizzes_category_id', Quiz.category_id)
-Index('ix_questions_quiz_id', Question.quiz_id)
-Index('ix_options_question_id', Option.question_id)
-Index('ix_quiz_reattempts_user_id', QuizReattempt.user_id)
-Index('ix_user_scores_user_id', UserScore.user_id)
-Index('ix_exam_categories_exam_type', ExamCategory.exam_type)
+Index("ix_users_email", User.email)
+Index("ix_users_username", User.username)
+Index("ix_quizzes_category_id", Quiz.category_id)
+Index("ix_questions_quiz_id", Question.quiz_id)
+Index("ix_options_question_id", Option.question_id)
+Index("ix_quiz_reattempts_user_id", QuizReattempt.user_id)
+Index("ix_user_scores_user_id", UserScore.user_id)
+Index("ix_exam_categories_exam_type", ExamCategory.exam_type)

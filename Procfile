@@ -1,1 +1,1 @@
-web: gunicorn -k uvicorn.workers.UvicornWorker main:app --bind=0.0.0.0:${PORT}
+web: alembic upgrade head 2>/dev/null || echo "No migrations to run" && gunicorn startup:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120 --keep-alive 5 --log-level info
