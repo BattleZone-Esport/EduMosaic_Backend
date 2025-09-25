@@ -77,6 +77,18 @@ class UserRole(enum.Enum):
     GUEST = "guest"
     EXAM_EXPERT = "exam_expert"  # For subject matter experts
 
+class Language(enum.Enum):
+    ENGLISH = "english"
+    HINDI = "hindi"
+    SPANISH = "spanish"
+    FRENCH = "french"
+    GERMAN = "german"
+    CHINESE = "chinese"
+    JAPANESE = "japanese"
+    KOREAN = "korean"
+    ARABIC = "arabic"
+    RUSSIAN = "russian"
+
 class ExamCategory(Base):
     __tablename__ = "exam_categories"
     id = Column(Integer, primary_key=True, index=True)

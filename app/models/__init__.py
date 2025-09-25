@@ -1,6 +1,6 @@
 """Database models for EduMosaic Backend"""
 
-from .models import (  # Enums
+from .models import (
     Achievement,
     Announcement,
     APIKey,
@@ -15,6 +15,7 @@ from .models import (  # Enums
     ExamType,
     FeatureFlag,
     Feedback,
+    Language,
     LeaderboardEntry,
     LoginHistory,
     Notification,
@@ -94,4 +95,5 @@ __all__ = [
     "DifficultyLevel",
     "BadgeType",
     "UserRole",
+    "Language",
 ]

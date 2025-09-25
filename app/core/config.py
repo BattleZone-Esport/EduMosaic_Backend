@@ -9,8 +9,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import AnyHttpUrl, BaseModel, EmailStr, PostgresDsn, field_validator
+from pydantic import AnyHttpUrl, BaseModel, EmailStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+try:
+    from pydantic import PostgresDsn
+except ImportError:
+    # For older pydantic versions
+    PostgresDsn = str
 
 
 class Settings(BaseSettings):
@@ -71,13 +76,12 @@ class Settings(BaseSettings):
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
-        return PostgresDsn.build(
-            scheme="postgresql+psycopg",
-            username=values.data.get("POSTGRES_USER"),
-            password=values.data.get("POSTGRES_PASSWORD"),
-            host=values.data.get("POSTGRES_SERVER"),
-            path=values.data.get("POSTGRES_DB") or "",
-        )
+        # Build connection string manually for compatibility
+        postgres_user = values.data.get("POSTGRES_USER") if hasattr(values, 'data') else "postgres"
+        postgres_password = values.data.get("POSTGRES_PASSWORD") if hasattr(values, 'data') else "postgres"
+        postgres_server = values.data.get("POSTGRES_SERVER") if hasattr(values, 'data') else "localhost"
+        postgres_db = values.data.get("POSTGRES_DB") if hasattr(values, 'data') else "edumosaic"
+        return f"postgresql+psycopg://{postgres_user}:{postgres_password}@{postgres_server}/{postgres_db}"
 
     # Redis Settings
     REDIS_URL: str = "redis://localhost:6379/0"
