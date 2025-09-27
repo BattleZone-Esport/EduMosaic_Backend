@@ -4,14 +4,17 @@ Development server runner
 """
 
 import uvicorn
-from app.core.config import settings
+import os
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    
     uvicorn.run(
         "app.main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=settings.is_development(),
-        log_level=settings.LOG_LEVEL.lower(),
+        host=host,
+        port=port,
+        reload=True if os.environ.get("ENVIRONMENT") == "development" else False,
+        log_level="info",
         access_log=True,
     )

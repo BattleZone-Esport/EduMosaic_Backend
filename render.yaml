@@ -2,11 +2,10 @@ services:
   # Web Service
   - type: web
     name: edumosaic-backend
-    env: python
+    runtime: python
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
-      alembic upgrade head
     startCommand: gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
     envVars:
       - key: ENVIRONMENT
@@ -23,7 +22,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
-        value: 3.12
+        value: "3.11"
     healthCheckPath: /health
     autoDeploy: true
 
@@ -34,7 +33,7 @@ databases:
     user: edumosaic_user
     plan: free
 
-# Redis Instance
+# Redis Instance (defined separately as a service)
 services:
   - type: redis
     name: edumosaic-redis

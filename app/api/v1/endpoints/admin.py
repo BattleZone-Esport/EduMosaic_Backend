@@ -3,7 +3,7 @@ Admin endpoints
 Handles administrative tasks and management
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session

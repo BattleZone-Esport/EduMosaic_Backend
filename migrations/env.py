@@ -23,7 +23,13 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Set database URL from environment
-config.set_main_option("sqlalchemy.url", settings.get_db_url())
+database_url = settings.get_db_url()
+# Handle potential psycopg vs psycopg2 issues
+if database_url.startswith("postgresql://"):
+    database_url = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+elif database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql+psycopg2://", 1)
+config.set_main_option("sqlalchemy.url", database_url)
 
 # Add your model's MetaData object here
 target_metadata = Base.metadata

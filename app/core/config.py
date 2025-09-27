@@ -8,6 +8,10 @@ import secrets
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+from dotenv import load_dotenv
+
+# Load .env file if it exists
+load_dotenv()
 
 from pydantic import AnyHttpUrl, BaseModel, EmailStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -81,7 +85,7 @@ class Settings(BaseSettings):
         postgres_password = values.data.get("POSTGRES_PASSWORD") if hasattr(values, 'data') else "postgres"
         postgres_server = values.data.get("POSTGRES_SERVER") if hasattr(values, 'data') else "localhost"
         postgres_db = values.data.get("POSTGRES_DB") if hasattr(values, 'data') else "edumosaic"
-        return f"postgresql+psycopg://{postgres_user}:{postgres_password}@{postgres_server}/{postgres_db}"
+        return f"postgresql://{postgres_user}:{postgres_password}@{postgres_server}/{postgres_db}"
 
     # Redis Settings
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -177,8 +181,12 @@ class Settings(BaseSettings):
     def get_db_url(self) -> str:
         """Get database URL for SQLAlchemy"""
         if self.DATABASE_URL:
-            return self.DATABASE_URL
-        return f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+            # Handle Render's postgres:// URLs
+            db_url = self.DATABASE_URL
+            if db_url.startswith("postgres://"):
+                db_url = db_url.replace("postgres://", "postgresql://", 1)
+            return db_url
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
 
     def get_redis_url(self) -> str:
         """Get Redis URL with password if provided"""

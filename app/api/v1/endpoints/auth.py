@@ -14,6 +14,7 @@ from app.core.cache import cache_manager, cached
 from app.core.database import get_db
 from app.core.exceptions import AuthenticationException, ValidationException
 from app.core.security import SecurityUtils, get_current_active_user
+from app.core.config import settings
 from app.models import User
 from app.schemas.auth import (
     EmailVerification,
